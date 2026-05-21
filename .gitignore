@@ -1,6 +1,5 @@
 blib/
 Makefile
-META.yml
 MYMETA.yml
 MYMETA.json
 MANIFEST

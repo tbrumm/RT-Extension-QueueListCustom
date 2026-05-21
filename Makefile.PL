@@ -8,7 +8,9 @@ all_from 'lib/RT/Extension/QueueListCustom.pm';
 
 readme_from 'lib/RT/Extension/QueueListCustom.pm';
 
-license 'gplv2';
+license 'gpl';
+
+perl_version '5.010';
 
 requires_rt '6.0.0';
 
