@@ -1,0 +1,11 @@
+blib/
+Makefile
+META.yml
+MYMETA.yml
+MYMETA.json
+MANIFEST
+pm_to_blib
+_build/
+Build
+*.tar.gz
+*.bak

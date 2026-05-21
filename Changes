@@ -1,0 +1,8 @@
+Revision history for RT-Extension-QueueListCustom
+
+0.01  2026-05-21
+    - Initial release
+    - Per-user, per-lifecycle status configuration via dedicated preferences page
+    - Portlet shows only queues the current user has ShowTicket access to
+    - Falls back to initial + active statuses when no preferences are saved
+    - Gear icon links directly to the preferences page

@@ -1,0 +1,135 @@
+NAME
+    RT-Extension-QueueListCustom - Customisable queue list portlet for the
+    RT homepage
+
+DESCRIPTION
+    This extension adds a homepage portlet called *Queue list by lifecycle
+    (custom)* that replaces RT's built-in Queue list portlet with a fully
+    per-user configurable version.
+
+  Features
+    *   Per-lifecycle status columns -- choose exactly which ticket statuses
+        appear as columns for each lifecycle. Defaults to "initial" and
+        "active".
+
+    *   Per-lifecycle queue visibility -- hide individual queues you do not
+        care about. Hidden queues are only hidden for you and do not affect
+        other users.
+
+    *   Configurable empty-queue hiding -- queues with zero tickets across
+        all visible status columns are hidden automatically by default. Users
+        can enable "Show empty queues" in the preferences to always show all
+        queues.
+
+    *   Collapsible lifecycle sections -- each lifecycle section can be
+        individually collapsed. The collapsed state is saved and restored on
+        the next page load.
+
+    *   Drag-and-drop lifecycle ordering -- reorder lifecycle sections on
+        the preferences page by dragging the handle icon. The order is saved
+        per user.
+
+    *   Manual reload -- a reload button in the portlet header fetches fresh
+        ticket counts without reloading the whole page.
+
+    *   Last loaded timestamp -- shows when the ticket counts were last
+        fetched, so you always know how current the data is.
+
+    *   Configurable auto-refresh -- optionally refresh the portlet
+        automatically every 2, 5, 10, 20, 60 or 120 minutes.
+
+    Only lifecycles belonging to queues the current user has "SeeQueue"
+    access to are shown, both in the portlet and on the preferences page.
+    Users in different roles therefore see different lifecycle and queue
+    combinations automatically. Ticket counts respect "ShowTicket" -- queues
+    where the user cannot see any tickets will show zeros and are hidden
+    automatically by the empty-queue filter.
+
+RT VERSION
+    Works with RT 6.0.
+
+INSTALLATION
+    "perl Makefile.PL"
+    "make"
+    "make install"
+        May need root permissions.
+
+    Edit /opt/rt6/etc/RT_SiteConfig.pm
+        Add the plugin:
+
+            Plugin('RT::Extension::QueueListCustom');
+
+        Add "QueueListCustom" to your $HomepageComponents list so users can
+        add the portlet to their homepage:
+
+            Set($HomepageComponents, [qw(
+                ... your existing components ...
+                QueueListCustom
+            )]);
+
+    Clear your mason cache
+            rm -rf /opt/rt6/var/mason_data/obj
+
+    Restart your webserver
+
+USAGE
+  Add the portlet to your homepage
+    Go to your RT homepage, click Edit, find QueueListCustom in the left
+    panel under *Component*, and drag it into the Body or Summary column.
+    Click Save to confirm.
+
+  Portlet header icons
+    The portlet title bar has two icons on the right:
+
+    Reload (arrow icon) -- fetches fresh ticket counts via AJAX without
+    reloading the page. Also resets the auto-refresh timer if configured.
+    Edit (gear icon) -- opens the preferences page.
+
+    The bottom of the portlet shows when the ticket counts were last loaded
+    and, if auto-refresh is active, how often they are refreshed.
+
+  Preferences page
+    Open the preferences page via the gear icon or directly at
+    /Prefs/QueueListStatuses.html.
+
+   General settings
+    Auto-refresh interval -- select how often the portlet should refresh
+    automatically: *Off* (default), or every 2, 5, 10, 20, 60 or 120
+    minutes.
+
+    Show empty queues -- when enabled, queues with no tickets in the
+    selected status columns are shown anyway. By default they are hidden
+    automatically.
+
+   Per-lifecycle settings
+    Each lifecycle you have access to appears as a card. Drag the handle
+    icon on the left of the card header to reorder lifecycles.
+
+    Within each card you can:
+
+    Status columns -- check the statuses you want to appear as columns. Use
+    *Select all*, *Deselect all* or *Reset to defaults* to quickly adjust
+    the selection. Defaults are the "initial" and "active" statuses of the
+    lifecycle.
+    Visible queues -- uncheck queues you want to hide. All queues are
+    visible by default.
+    Start collapsed -- check this to have the lifecycle section start folded
+    up in the portlet.
+
+    Click Save Changes to apply. All settings are stored per user and do not
+    affect other users.
+
+CONFIGURATION
+    No server-side configuration is required beyond the Plugin() call and
+    $HomepageComponents entry described under "INSTALLATION". All portlet
+    behaviour is configured per user via the preferences page.
+
+AUTHOR
+    misy <git@mymistake.de>
+
+BUGS
+    Please report bugs via the GitHub issue tracker at
+    <https://github.com/misy1337/RT-Extension-QueueListCustom/issues>.
+
+LICENSE
+    GNU General Public License v2.

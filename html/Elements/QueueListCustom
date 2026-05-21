@@ -1,0 +1,172 @@
+<%perl>
+my $web_path        = RT->Config->Get('WebPath');
+my $prefs           = RT::Extension::QueueListCustom->LoadPreferences(\%session);
+my $refresh_seconds  = RT::Extension::QueueListCustom->RefreshIntervalForPortlet($prefs);
+my $show_empty       = RT::Extension::QueueListCustom->ShowEmptyQueues($prefs);
+my $htmx_id         = GenerateUniqueId();
+my $view_url        = $web_path . '/Views/Component/QueueListCustom';
+my $reload_url      = $view_url . '?Reload=1';
+</%perl>
+
+<div class="ticket-overview">
+<&|/Widgets/TitleBox,
+    title     => loc('Queue list by lifecycle (custom)'),
+    class     => "fullwidth",
+    bodyclass => "",
+    htmx_load => 1,
+    htmx_get  => $view_url,
+    htmx_id   => $htmx_id,
+    icons_ref => [
+        {
+            icon_name      => 'arrow-clockwise',
+            tooltip_text   => loc('Reload'),
+            icon_href      => '#',
+            htmx_get       => $reload_url,
+            htmx_target    => '#' . $htmx_id,
+            htmx_indicator => '#' . $htmx_id,
+        },
+        {
+            icon_name    => 'gear',
+            tooltip_text => loc('Edit'),
+            icon_href    => $web_path . '/Prefs/QueueListStatuses.html',
+        },
+    ],
+&>
+
+<%perl>
+# This block is only executed on htmx requests (/Views/Component/QueueListCustom).
+# On the initial full page load, htmx_load=1 causes TitleBox to skip $m->content.
+
+# Use RT's session-cached, permission-filtered queue list.
+my $cache_key = SetObjectSessionCache(
+    ObjectType       => 'RT::Queue',
+    CheckRight       => 'SeeQueue',
+    ShowAll          => 0,
+    CacheNeedsUpdate => RT->System->QueueCacheNeedsUpdate,
+);
+my $queues = $session{$cache_key}{objects} // [];
+
+my @lifecycles = RT::Extension::QueueListCustom->OrderedLifecyclesForUser($queues, $prefs);
+
+# Single aggregation query for all ticket counts.
+# Uses current user so per-ticket ACLs are respected.
+my %data;
+if (@$queues) {
+    use RT::Report::Tickets;
+    my $report = RT::Report::Tickets->new( $session{CurrentUser} );
+    my $query = "(" . join( ' OR ', map { "Queue = " . $_->{Id} } @$queues ) . ")";
+    $report->SetupGroupings( Query => $query, GroupBy => [qw(Status Queue)] );
+    while ( my $entry = $report->Next ) {
+        $data{ $entry->__Value("Queue") }{ lc $entry->__Value("Status") }
+            = $entry->__Value('Id');
+    }
+}
+
+# Set HX-Trigger for auto-refresh and reload notification.
+if ( $m->request_path =~ m{^/Views/} ) {
+    my %event;
+    if ( $m->request_args->{'Reload'} ) {
+        $event{actionsChanged} = [ loc('Queue list reloaded.') ];
+    }
+    if ( $refresh_seconds ) {
+        $event{triggerChanged} = 'reload consume, every ' . $refresh_seconds . 's[checkRefreshState(this)]';
+    }
+    if (%event) {
+        $r->headers_out->{'HX-Trigger'} = JSON( \%event, ascii => 1 );
+    }
+}
+
+my $loaded_date = RT::Date->new( $session{CurrentUser} );
+$loaded_date->Set( Format => 'Unix', Value => time() );
+</%perl>
+
+% for my $lifecycle (@lifecycles) {
+%   my $lc_name   = $lifecycle->Name;
+%   my $lc_id     = $lc_name;
+%   $lc_id        =~ s/[^a-zA-Z0-9_-]/-/g;
+%   my @statuses  = RT::Extension::QueueListCustom->StatusesForLifecycleFromPrefs($prefs, $lifecycle);
+%   my $hidden_q  = RT::Extension::QueueListCustom->HiddenQueuesForLifecycle($prefs, $lc_name);
+%   my $collapsed = RT::Extension::QueueListCustom->IsLifecycleCollapsed($prefs, $lc_name);
+%
+%   my @lc_queues = grep {
+%       lc($_->{Lifecycle} // 'default') eq lc($lc_name)
+%       && !$hidden_q->{ $_->{Id} }
+%   } @$queues;
+%   next unless @lc_queues && @statuses;
+%
+%   # auto-hide queues with zero tickets across all visible statuses (unless user opted in)
+%   unless ( $show_empty ) {
+%       @lc_queues = grep {
+%           my $q = $_;
+%           grep { ( $data{ $q->{Id} }{ lc $_ } // 0 ) > 0 } @statuses;
+%       } @lc_queues;
+%       next unless @lc_queues;
+%   }
+
+<div class="mb-3">
+  <div class="d-flex align-items-center mb-1 gap-1">
+    <span class="fw-bold"><% loc($lc_name) %></span>
+    <span class="accordion-toggle <% $collapsed ? 'collapsed' : '' %>"
+          data-bs-toggle="collapse"
+          data-bs-target="#qlc-<% $lc_id | h %>"
+          title="<% loc('Toggle visibility') %>"></span>
+  </div>
+  <div id="qlc-<% $lc_id | h %>" class="collapse <% $collapsed ? '' : 'show' %>">
+    <div class="table-responsive">
+    <table class="table <% RT->Config->Get('TableAccent') %> queue-summary">
+    <thead>
+    <tr>
+      <th class="collection-as-table"><% loc('Queue') %></th>
+%   for my $status (@statuses) {
+      <th class="collection-as-table"><% loc($status) %></th>
+%   }
+    </tr>
+    </thead>
+    <tbody>
+%   for my $queue (@lc_queues) {
+%     my $qid       = $queue->{Id};
+%     my $queue_link = $web_path . '/Search/Results.html?Query='
+%                    . $m->interp->apply_escapes(
+%                          "Queue = $qid AND Status = '__Active__'", 'u');
+    <tr>
+      <td>
+        <a href="<% $queue_link %>"
+           title="<% $queue->{Description} | h %>"><% $queue->{Name} | h %></a>
+      </td>
+%     for my $status (@statuses) {
+%       my $count = $data{ $qid }{ lc $status } // 0;
+%       my $link  = $web_path . '/Search/Results.html?Query='
+%                 . $m->interp->apply_escapes(
+%                       "Queue = $qid AND Status = '$status'", 'u');
+      <td class="text-end">
+%       if ($count) {
+        <a href="<% $link %>"><% $count %></a>
+%       } else {
+        <span class="text-muted">-</span>
+%       }
+      </td>
+%     }
+    </tr>
+%   }
+    </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+% }
+
+% unless (@lifecycles) {
+<p class="text-muted"><% loc('No queues available.') %></p>
+% }
+
+<div class="refresh-text">
+  <small class="text-body-secondary"><&|/l&>Last loaded</&> <% $loaded_date->AsString %>.</small>
+% if ( $refresh_seconds ) {
+  <small class="text-body-secondary"><&|/l, $loaded_date->DurationAsString($refresh_seconds) &>Refreshing every [_1].</&></small>
+% }
+</div>
+<& /Widgets/Spinner &>
+
+</&>
+</div>

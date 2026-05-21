@@ -1,0 +1,298 @@
+<& /Elements/Header, Title => loc('Customize Queue List') &>
+<& /Elements/Tabs &>
+<& /Elements/ListActions, actions => \@actions &>
+
+<h1><&|/l&>Queue list portlet preferences</&></h1>
+<p class="text-muted">
+  <&|/l&>Configure which status columns and queues are shown per lifecycle. Queues with zero tickets are always hidden automatically.</&>
+</p>
+
+<form method="post" action="QueueListStatuses.html" name="Preferences">
+<input type="hidden" name="lifecycle_order" id="qlc-order-input"
+       value="<% join(',', map { $_->Name } @lifecycles) | h %>" />
+
+<div class="card mb-4">
+  <div class="card-header"><strong><&|/l&>General settings</&></strong></div>
+  <div class="card-body">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      <div class="d-flex align-items-center gap-2">
+        <label class="fw-semibold mb-0" for="qlc-refresh-interval"><&|/l&>Auto-refresh</&></label>
+        <select class="form-select form-select-sm" id="qlc-refresh-interval" name="refresh_interval" style="width:auto">
+%   my $cur_refresh = $prefs->{'__refresh_interval'} // 0;
+%   my @refresh_opts = (
+%       [ 0,    loc('Off') ],
+%       [ 120,  loc('Every 2 min') ],
+%       [ 300,  loc('Every 5 min') ],
+%       [ 600,  loc('Every 10 min') ],
+%       [ 1200, loc('Every 20 min') ],
+%       [ 3600, loc('Every 60 min') ],
+%       [ 7200, loc('Every 120 min') ],
+%   );
+%   for my $opt (@refresh_opts) {
+          <option value="<% $opt->[0] %>"<% $cur_refresh == $opt->[0] ? ' selected="selected"' : '' | n %>><% $opt->[1] %></option>
+%   }
+        </select>
+      </div>
+      <div class="vr"></div>
+      <div class="form-check mb-0">
+        <input class="form-check-input" type="checkbox" id="qlc-show-empty"
+               name="show_empty_queues" value="1"
+               <% $prefs->{'__show_empty_queues'} ? 'checked="checked"' : '' | n %> />
+        <label class="form-check-label fw-semibold" for="qlc-show-empty"
+               data-bs-toggle="tooltip"
+               data-bs-title="<% loc('When enabled, queues with no tickets in the selected status columns are still shown. By default they are hidden automatically.') | h %>">
+          <&|/l&>Show empty queues</&>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="qlc-sortable">
+% for my $lifecycle (@lifecycles) {
+%   my $lc_name   = $lifecycle->Name;
+%   my $lc_key    = lc($lc_name);
+%   my $lc_safe   = $lc_name;
+%   $lc_safe      =~ s/[^a-zA-Z0-9]/_/g;
+%   my @statuses  = RT::Extension::QueueListCustom->StatusesForLifecycle($lifecycle);
+%   my $lc_prefs  = RT::Extension::QueueListCustom->_LifecyclePrefs($prefs, $lc_name);
+%
+%   # default statuses: initial + active
+%   my %default_st = map { lc($_) => 1 } (
+%       $lifecycle->Valid('initial'),
+%       $lifecycle->Valid('active'),
+%   );
+%
+%   my %st_checked;
+%   if ( my $saved = $lc_prefs->{statuses} ) {
+%       %st_checked = map { lc($_) => 1 } @$saved;
+%   } else {
+%       %st_checked = %default_st;
+%   }
+%
+%   my @lc_queues = grep { lc($_->{Lifecycle} // 'default') eq $lc_key } @$queues;
+%   my $hidden_q  = RT::Extension::QueueListCustom->HiddenQueuesForLifecycle($prefs, $lc_name);
+%   my $collapsed = RT::Extension::QueueListCustom->IsLifecycleCollapsed($prefs, $lc_name);
+
+  <div class="card mb-4" data-lifecycle="<% $lc_name | h %>">
+    <div class="card-header d-flex align-items-center gap-2">
+      <span class="qlc-drag-handle" title="<% loc('Drag to reorder') %>" style="cursor:grab;color:var(--bs-secondary-color,#6c757d)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+        </svg>
+      </span>
+      <strong><% loc($lc_name) %></strong>
+    </div>
+    <div class="card-body">
+
+      <div class="mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 class="mb-0"><&|/l&>Status columns</&></h6>
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-secondary"
+                    onclick="qlcCheckGroup('st-<% $lc_safe %>', true); return false;">
+              <&|/l&>Select all</&>
+            </button>
+            <button type="button" class="btn btn-outline-secondary"
+                    onclick="qlcCheckGroup('st-<% $lc_safe %>', false); return false;">
+              <&|/l&>Deselect all</&>
+            </button>
+            <button type="button" class="btn btn-outline-secondary"
+                    onclick="qlcResetStatuses('st-<% $lc_safe %>', [<% join(',', map { "'" . lc($_) . "'" } grep { $default_st{lc($_)} } @statuses) | n %>]); return false;">
+              <&|/l&>Reset to defaults</&>
+            </button>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-3">
+%   for my $status (@statuses) {
+          <div class="form-check">
+            <input class="form-check-input qlc-st-<% $lc_safe %>"
+                   type="checkbox"
+                   id="status-<% $lc_name | h %>-<% $status | h %>"
+                   name="status-<% $lc_name | h %>-<% $status | h %>"
+                   value="1"
+                   <% $st_checked{ lc($status) } ? 'checked="checked"' : '' | n %>
+                   data-status="<% lc($status) | h %>" />
+            <label class="form-check-label"
+                   for="status-<% $lc_name | h %>-<% $status | h %>">
+              <% loc($status) %>
+            </label>
+          </div>
+%   }
+        </div>
+      </div>
+
+%   if (@lc_queues) {
+      <div class="mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 class="mb-0"><&|/l&>Visible queues</&></h6>
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-secondary"
+                    onclick="qlcCheckGroup('q-<% $lc_safe %>', true); return false;">
+              <&|/l&>Select all</&>
+            </button>
+            <button type="button" class="btn btn-outline-secondary"
+                    onclick="qlcCheckGroup('q-<% $lc_safe %>', false); return false;">
+              <&|/l&>Deselect all</&>
+            </button>
+            <button type="button" class="btn btn-outline-secondary"
+                    onclick="qlcCheckGroup('q-<% $lc_safe %>', true); return false;">
+              <&|/l&>Reset to defaults</&>
+            </button>
+          </div>
+        </div>
+        <ul class="list-group list-group-borderless">
+%     for my $q (@lc_queues) {
+          <li class="list-group-item py-1">
+            <div class="form-check">
+              <input class="form-check-input qlc-q-<% $lc_safe %>"
+                     type="checkbox"
+                     id="queue-<% $lc_name | h %>-<% $q->{Id} %>"
+                     name="queue-<% $lc_name | h %>-<% $q->{Id} %>"
+                     value="1"
+                     <% !$hidden_q->{ $q->{Id} } ? 'checked="checked"' : '' | n %> />
+              <label class="form-check-label"
+                     for="queue-<% $lc_name | h %>-<% $q->{Id} %>">
+                <% $q->{Name} | h %><% $q->{Description} ? ': ' . $q->{Description} : '' | h %>
+              </label>
+            </div>
+          </li>
+%     }
+        </ul>
+      </div>
+%   }
+
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox"
+               id="collapsed-<% $lc_name | h %>"
+               name="collapsed-<% $lc_name | h %>"
+               value="1"
+               <% $collapsed ? 'checked="checked"' : '' | n %> />
+        <label class="form-check-label" for="collapsed-<% $lc_name | h %>">
+          <&|/l&>Start collapsed in portlet</&>
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+% }
+
+% unless (@lifecycles) {
+  <p class="text-muted"><&|/l&>No queues available.</&></p>
+% }
+
+</div><%# end qlc-sortable %>
+
+  <& /Elements/Submit,
+    Caption => loc('Save Changes'),
+    Label   => loc('Save'),
+    Name    => 'Save',
+  &>
+</form>
+
+<script>
+function qlcCheckGroup(group, val) {
+    document.querySelectorAll('.qlc-' + group)
+        .forEach(function(cb) { cb.checked = val; });
+}
+
+function qlcResetStatuses(group, defaults) {
+    var defaultSet = {};
+    defaults.forEach(function(s) { defaultSet[s] = true; });
+    document.querySelectorAll('.qlc-' + group).forEach(function(cb) {
+        cb.checked = !!defaultSet[cb.dataset.status];
+    });
+}
+
+function qlcInitSortable() {
+    var container = document.getElementById('qlc-sortable');
+    var orderInput = document.getElementById('qlc-order-input');
+    if (!container || !orderInput) return;
+
+    if (typeof Sortable === 'undefined') {
+        if (window._qlcSortableLoading) return;
+        window._qlcSortableLoading = true;
+        var script = document.createElement('script');
+        script.src = '<% RT->Config->Get('WebPath') %>/static/js/sortable.min.js';
+        script.onload = function() {
+            window._qlcSortableLoading = false;
+            qlcInitSortable();
+        };
+        document.head.appendChild(script);
+        return;
+    }
+
+    if (container._qlcSortable) return;
+    container._qlcSortable = Sortable.create(container, {
+        handle: '.qlc-drag-handle',
+        animation: 150,
+        ghostClass: 'bg-light',
+        onEnd: function () {
+            var order = Array.from(container.querySelectorAll('[data-lifecycle]'))
+                .map(function(el) { return el.dataset.lifecycle; });
+            orderInput.value = order.join(',');
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', qlcInitSortable);
+document.addEventListener('htmx:afterSettle',  qlcInitSortable);
+</script>
+
+<%INIT>
+my @actions;
+
+my $queues     = RT::Extension::QueueListCustom->QueuesForCurrentUser(\%session);
+my $prefs      = RT::Extension::QueueListCustom->LoadPreferences(\%session);
+my @lifecycles = RT::Extension::QueueListCustom->OrderedLifecyclesForUser($queues, $prefs);
+
+if ( $ARGS{Save} ) {
+    my %new_prefs;
+
+    for my $lifecycle (@lifecycles) {
+        my $lc_name  = $lifecycle->Name;
+        my $lc_key   = lc($lc_name);
+        my @statuses = RT::Extension::QueueListCustom->StatusesForLifecycle($lifecycle);
+
+        my @selected_statuses;
+        for my $status (@statuses) {
+            push @selected_statuses, $status
+                if $ARGS{"status-$lc_name-$status"};
+        }
+
+        my @lc_queues = grep { lc($_->{Lifecycle} // 'default') eq $lc_key } @$queues;
+        my @hidden_queues;
+        for my $q (@lc_queues) {
+            push @hidden_queues, $q->{Id}
+                unless $ARGS{"queue-$lc_name-$q->{Id}"};
+        }
+
+        $new_prefs{ $lc_key } = {
+            statuses      => \@selected_statuses,
+            hidden_queues => \@hidden_queues,
+            collapsed     => $ARGS{"collapsed-$lc_name"} ? 1 : 0,
+        };
+    }
+
+    # Preserve lifecycle order from drag-and-drop
+    if ( my $order_str = $ARGS{lifecycle_order} ) {
+        my @order = grep { length } split /,/, $order_str;
+        $new_prefs{__lifecycle_order} = \@order if @order;
+    }
+
+    # Global: auto-refresh interval (0 = off)
+    my $ri = $ARGS{refresh_interval} // 0;
+    $ri = 0 unless $ri =~ /^\d+$/;
+    $new_prefs{__refresh_interval} = $ri + 0;
+
+    # Global: show queues with zero visible tickets
+    $new_prefs{__show_empty_queues} = $ARGS{show_empty_queues} ? 1 : 0;
+
+    my ( $ok, $msg ) = RT::Extension::QueueListCustom->SavePreferences(
+        \%session, \%new_prefs
+    );
+    $prefs = \%new_prefs if $ok;
+    push @actions, $ok ? loc('Preferences saved.') : $msg;
+}
+</%INIT>
