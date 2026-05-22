@@ -1,5 +1,10 @@
 Revision history for RT-Extension-QueueListCustom
 
+1.1   2026-05-22
+    - Ticket count aggregation cached in session for 60 seconds
+    - Reload button (↺) bypasses cache and forces a fresh DB query
+    - Reduces repeated portlet load time from ~1000ms to <10ms
+
 1.0   2026-05-22
     - First public release
     - Preferences page: status checkboxes now grouped by category (initial /

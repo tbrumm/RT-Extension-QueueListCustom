@@ -62,10 +62,17 @@ my $queues = $session{$cache_key}{objects} // [];
 
 my @lifecycles = RT::Extension::QueueListCustom->OrderedLifecyclesForUser($queues, $prefs);
 
-# Single aggregation query for all ticket counts.
-# Uses current user so per-ticket ACLs are respected.
+# Ticket count aggregation with 60-second session cache.
+# The Reload button (Reload=1) bypasses and refreshes the cache.
+my $is_reload   = $m->request_args->{'Reload'} ? 1 : 0;
+my $count_cache = $session{QueueListCustom_counts};
+my $cache_age   = $count_cache ? ( time() - ( $count_cache->{ts} // 0 ) ) : undef;
+my $cache_valid = $count_cache && !$is_reload && $cache_age < 60;
+
 my %data;
-if (@$queues) {
+if ( $cache_valid ) {
+    %data = %{ $count_cache->{data} };
+} elsif (@$queues) {
     my $report = RT::Report::Tickets->new( $session{CurrentUser} );
     my $query = "(" . join( ' OR ', map { "Queue = " . $_->{Id} } @$queues ) . ")";
     $report->SetupGroupings( Query => $query, GroupBy => [qw(Status Queue)] );
@@ -73,12 +80,13 @@ if (@$queues) {
         $data{ $entry->__Value("Queue") }{ lc $entry->__Value("Status") }
             = $entry->__Value('Id');
     }
+    $session{QueueListCustom_counts} = { ts => time(), data => \%data };
 }
 
 # Set HX-Trigger for auto-refresh and reload notification.
 if ( $m->request_path =~ m{^/Views/} ) {
     my %event;
-    if ( $m->request_args->{'Reload'} ) {
+    if ( $is_reload ) {
         $event{actionsChanged} = [ loc('Queue list reloaded.') ];
     }
     if ( $refresh_seconds ) {
