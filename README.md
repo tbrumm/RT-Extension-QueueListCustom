@@ -35,11 +35,15 @@ make
 sudo make install
 ```
 
-Edit `/opt/rt6/etc/RT_SiteConfig.pm`:
+Add to `/opt/rt6/etc/RT_SiteConfig.d/002_Plugins.pm`:
 
 ```perl
 Plugin('RT::Extension::QueueListCustom');
+```
 
+Add `QueueListCustom` to your `$HomepageComponents` in `/opt/rt6/etc/RT_SiteConfig.pm`:
+
+```perl
 Set($HomepageComponents, [qw(
     ... your existing components ...
     QueueListCustom
