@@ -71,11 +71,14 @@ Works with RT 6.0.
 
 May need root permissions.
 
-=item Add to F</opt/rt6/etc/RT_SiteConfig.d/002_Plugins.pm>
+=item Edit F</opt/rt6/etc/RT_SiteConfig.pm>
+
+Add the plugin:
 
     Plugin('RT::Extension::QueueListCustom');
 
-=item Add C<QueueListCustom> to C<$HomepageComponents> in F</opt/rt6/etc/RT_SiteConfig.pm>
+Add C<QueueListCustom> to your C<$HomepageComponents> list so users can add
+the portlet to their homepage:
 
     Set($HomepageComponents, [qw(
         ... your existing components ...
