@@ -19,6 +19,16 @@ Replaces the built-in *Queue list* portlet with a fully per-user configurable ve
 
 Queues are listed based on `SeeQueue` access. Ticket counts respect `ShowTicket` — queues where the user cannot see any tickets show zeros and are hidden automatically by the empty-queue filter. Users in different roles automatically see different data.
 
+## Screenshots
+
+### Portlet
+
+![Queue list by lifecycle portlet with colour-coded section headers](screenshots/portlet.png)
+
+### Preferences page
+
+![Queue list preferences page showing per-lifecycle status and queue configuration](screenshots/preferences.png)
+
 ---
 
 ## Requirements

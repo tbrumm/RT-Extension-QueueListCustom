@@ -3,7 +3,7 @@ use warnings;
 
 package RT::Extension::QueueListCustom;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =encoding utf8
 

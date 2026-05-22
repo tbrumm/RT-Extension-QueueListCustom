@@ -93,7 +93,18 @@ my $loaded_date = RT::Date->new( $session{CurrentUser} );
 $loaded_date->Set( Format => 'Unix', Value => time() );
 </%perl>
 
-% my $any_rendered = 0;
+<%perl>
+my @lc_header_colors = (
+    'bg-primary bg-opacity-10',
+    'bg-success bg-opacity-10',
+    'bg-info bg-opacity-10',
+    'bg-warning bg-opacity-10',
+    'bg-danger bg-opacity-10',
+    'bg-secondary bg-opacity-10',
+);
+my $lc_color_idx = 0;
+my $any_rendered  = 0;
+</%perl>
 % for my $lifecycle (@lifecycles) {
 %   my $lc_name   = $lifecycle->Name;
 %   my $lc_id     = $lc_name;
@@ -117,14 +128,17 @@ $loaded_date->Set( Format => 'Unix', Value => time() );
 %       next unless @lc_queues;
 %   }
 %   $any_rendered++;
+%   my $lc_color = $lc_header_colors[ $lc_color_idx++ % scalar @lc_header_colors ];
 
 <div class="mb-3">
-  <div class="d-flex align-items-center mb-1 gap-1">
-    <span class="accordion-toggle <% $collapsed ? 'collapsed' : '' %>"
-          data-bs-toggle="collapse"
-          data-bs-target="#qlc-<% $lc_id | h %>"
-          title="<% loc('Toggle visibility') %>"></span>
-    <span class="fw-bold"><% loc($lc_name) %></span>
+  <div class="d-flex align-items-center gap-2 px-2 py-1 mb-1 rounded <% $lc_color %>"
+       role="button"
+       data-bs-toggle="collapse"
+       data-bs-target="#qlc-<% $lc_id | h %>"
+       aria-expanded="<% $collapsed ? 'false' : 'true' %>"
+       title="<% loc('Toggle visibility') %>">
+    <span class="accordion-toggle <% $collapsed ? 'collapsed' : '' %>"></span>
+    <span class="fw-semibold"><% loc($lc_name) %></span>
   </div>
   <div id="qlc-<% $lc_id | h %>" class="collapse <% $collapsed ? '' : 'show' %>">
     <div class="table-responsive">
