@@ -17,9 +17,9 @@ DESCRIPTION
         other users.
 
     *   Configurable empty-queue hiding -- queues with zero tickets across
-        all visible status columns are hidden automatically by default. Users
-        can enable "Show empty queues" in the preferences to always show all
-        queues.
+        all visible status columns are hidden automatically by default.
+        Users can enable Show empty queues in the preferences to always show
+        all queues.
 
     *   Collapsible lifecycle sections -- each lifecycle section can be
         individually collapsed. The collapsed state is saved and restored on
@@ -41,7 +41,7 @@ DESCRIPTION
     Only lifecycles belonging to queues the current user has "SeeQueue"
     access to are shown, both in the portlet and on the preferences page.
     Users in different roles therefore see different lifecycle and queue
-    combinations automatically. Ticket counts respect "ShowTicket" -- queues
+    combinations automatically. Ticket counts respect "ShowTicket" — queues
     where the user cannot see any tickets will show zeros and are hidden
     automatically by the empty-queue filter.
 
@@ -107,17 +107,21 @@ USAGE
 
     Within each card you can:
 
-    Status columns -- check the statuses you want to appear as columns. Use
-    *Select all*, *Deselect all* or *Reset to defaults* to quickly adjust
-    the selection. Defaults are the "initial" and "active" statuses of the
+    Status columns -- check the statuses you want to appear as columns.
+    Statuses are grouped by category (*initial*, *active*, *inactive*) with
+    labels so you can see at a glance what each status means. Use *Select
+    all*, *Deselect all* or *Reset to defaults* to quickly adjust the
+    selection. Defaults are the "initial" and "active" statuses of the
     lifecycle.
     Visible queues -- uncheck queues you want to hide. All queues are
     visible by default.
     Start collapsed -- check this to have the lifecycle section start folded
     up in the portlet.
 
-    Click Save Changes to apply. All settings are stored per user and do not
-    affect other users.
+    Click Save Changes to apply — the button appears both at the top and
+    bottom of the page. If you make any changes, an Unsaved changes
+    indicator appears next to the top button as a reminder. All settings are
+    stored per user and do not affect other users.
 
 CONFIGURATION
     No server-side configuration is required beyond the Plugin() call and
@@ -133,3 +137,4 @@ BUGS
 
 LICENSE
     GNU General Public License v2.
+

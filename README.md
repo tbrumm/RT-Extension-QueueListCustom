@@ -72,6 +72,8 @@ The bottom of the portlet shows when the data was last loaded and, if auto-refre
 
 ### Preferences page (`/Prefs/QueueListStatuses.html`)
 
+A **Save Changes** button appears at the top and bottom of the page. An **Unsaved changes** badge appears next to the top button whenever you modify a setting, so you won't accidentally navigate away without saving.
+
 **General settings**
 
 | Setting | Description |
@@ -85,7 +87,7 @@ Drag the handle on the left of each card to reorder lifecycles. Within each card
 
 | Setting | Description |
 |---------|-------------|
-| Status columns | Check the statuses to show as columns; *Select all*, *Deselect all* and *Reset to defaults* buttons available |
+| Status columns | Statuses are grouped by category (*initial*, *active*, *inactive*) with labels. Check the ones to show as columns; *Select all*, *Deselect all* and *Reset to defaults* buttons available |
 | Visible queues | Uncheck queues to hide them |
 | Start collapsed | Start this lifecycle section folded up in the portlet |
 

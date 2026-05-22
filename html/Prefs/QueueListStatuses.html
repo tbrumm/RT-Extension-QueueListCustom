@@ -11,6 +11,16 @@
 <input type="hidden" name="lifecycle_order" id="qlc-order-input"
        value="<% join(',', map { $_->Name } @lifecycles) | h %>" />
 
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <span id="qlc-unsaved-banner" class="d-none badge text-bg-warning">
+    <&|/l&>Unsaved changes</&>
+  </span>
+  <button type="submit" name="Save" value="1" id="qlc-save-top"
+          class="btn btn-sm btn-outline-primary ms-auto">
+    <&|/l&>Save Changes</&>
+  </button>
+</div>
+
 <div class="card mb-4">
   <div class="card-header"><strong><&|/l&>General settings</&></strong></div>
   <div class="card-body">
@@ -103,20 +113,35 @@
             </button>
           </div>
         </div>
-        <div class="d-flex flex-wrap gap-3">
-%   for my $status (@statuses) {
-          <div class="form-check">
-            <input class="form-check-input qlc-st-<% $lc_safe %>"
-                   type="checkbox"
-                   id="status-<% $lc_name | h %>-<% $status | h %>"
-                   name="status-<% $lc_name | h %>-<% $status | h %>"
-                   value="1"
-                   <% $st_checked{ lc($status) } ? 'checked="checked"' : '' | n %>
-                   data-status="<% lc($status) | h %>" />
-            <label class="form-check-label"
-                   for="status-<% $lc_name | h %>-<% $status | h %>">
-              <% loc($status) %>
-            </label>
+%   my @_st_groups;
+%   for my $_cat (qw(initial active inactive)) {
+%       my @_s = grep { lc($_) ne 'deleted' } $lifecycle->Valid($_cat);
+%       push @_st_groups, { label => $_cat, statuses => \@_s } if @_s;
+%   }
+%   my %_grouped = map { lc($_) => 1 } map { @{$_->{statuses}} } @_st_groups;
+%   my @_other   = grep { !$_grouped{lc($_)} } @statuses;
+%   push @_st_groups, { label => 'other', statuses => \@_other } if @_other;
+        <div class="d-flex gap-4 flex-wrap">
+%   for my $_grp (@_st_groups) {
+          <div>
+            <small class="text-muted fw-semibold text-uppercase" style="font-size:0.7em;letter-spacing:0.04em"><% loc($_grp->{label}) %></small>
+            <div class="d-flex flex-column gap-1 mt-1">
+%       for my $status (@{$_grp->{statuses}}) {
+              <div class="form-check mb-0">
+                <input class="form-check-input qlc-st-<% $lc_safe %>"
+                       type="checkbox"
+                       id="status-<% $lc_name | h %>-<% $status | h %>"
+                       name="status-<% $lc_name | h %>-<% $status | h %>"
+                       value="1"
+                       <% $st_checked{ lc($status) } ? 'checked="checked"' : '' | n %>
+                       data-status="<% lc($status) | h %>" />
+                <label class="form-check-label"
+                       for="status-<% $lc_name | h %>-<% $status | h %>">
+                  <% loc($status) %>
+                </label>
+              </div>
+%       }
+            </div>
           </div>
 %   }
         </div>
@@ -136,7 +161,7 @@
               <&|/l&>Deselect all</&>
             </button>
             <button type="button" class="btn btn-outline-secondary"
-                    onclick="qlcCheckGroup('q-<% $lc_safe %>', true); return false;">
+                    onclick="qlcResetQueues('q-<% $lc_safe %>'); return false;">
               <&|/l&>Reset to defaults</&>
             </button>
           </div>
@@ -197,6 +222,10 @@ function qlcCheckGroup(group, val) {
         .forEach(function(cb) { cb.checked = val; });
 }
 
+function qlcResetQueues(group) {
+    qlcCheckGroup(group, true); // default is all queues visible
+}
+
 function qlcResetStatuses(group, defaults) {
     var defaultSet = {};
     defaults.forEach(function(s) { defaultSet[s] = true; });
@@ -232,18 +261,43 @@ function qlcInitSortable() {
             var order = Array.from(container.querySelectorAll('[data-lifecycle]'))
                 .map(function(el) { return el.dataset.lifecycle; });
             orderInput.value = order.join(',');
+            orderInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
     });
 }
 
 document.addEventListener('DOMContentLoaded', qlcInitSortable);
 document.addEventListener('htmx:afterSettle',  qlcInitSortable);
+
+(function () {
+    var form = document.querySelector('form[name="Preferences"]');
+    if (!form) return;
+
+    function markDirty() {
+        var banner = document.getElementById('qlc-unsaved-banner');
+        var btn    = document.getElementById('qlc-save-top');
+        if (banner) banner.classList.remove('d-none');
+        if (btn) {
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('btn-primary');
+        }
+    }
+
+    form.addEventListener('change', markDirty);
+}());
 </script>
 
 <%INIT>
 my @actions;
 
-my $queues     = RT::Extension::QueueListCustom->QueuesForCurrentUser(\%session);
+my $cache_key  = SetObjectSessionCache(
+    ObjectType       => 'RT::Queue',
+    CheckRight       => 'SeeQueue',
+    ShowAll          => 0,
+    CacheNeedsUpdate => RT->System->QueueCacheNeedsUpdate,
+);
+my $queues     = [ sort { lc( $a->{Name} ) cmp lc( $b->{Name} ) }
+                   @{ $session{$cache_key}{objects} // [] } ];
 my $prefs      = RT::Extension::QueueListCustom->LoadPreferences(\%session);
 my @lifecycles = RT::Extension::QueueListCustom->OrderedLifecyclesForUser($queues, $prefs);
 

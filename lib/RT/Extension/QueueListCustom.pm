@@ -140,9 +140,10 @@ Within each card you can:
 =over
 
 =item B<Status columns> -- check the statuses you want to appear as columns.
-Use I<Select all>, I<Deselect all> or I<Reset to defaults> to quickly adjust
-the selection. Defaults are the C<initial> and C<active> statuses of the
-lifecycle.
+Statuses are grouped by category (I<initial>, I<active>, I<inactive>) with
+labels so you can see at a glance what each status means. Use I<Select all>,
+I<Deselect all> or I<Reset to defaults> to quickly adjust the selection.
+Defaults are the C<initial> and C<active> statuses of the lifecycle.
 
 =item B<Visible queues> -- uncheck queues you want to hide. All queues are
 visible by default.
@@ -152,8 +153,10 @@ folded up in the portlet.
 
 =back
 
-Click B<Save Changes> to apply. All settings are stored per user and do not
-affect other users.
+Click B<Save Changes> to apply — the button appears both at the top and bottom
+of the page. If you make any changes, an B<Unsaved changes> indicator appears
+next to the top button as a reminder. All settings are stored per user and do
+not affect other users.
 
 =head1 CONFIGURATION
 
@@ -180,7 +183,7 @@ GNU General Public License v2.
 # QueuesForCurrentUser \%session
 #
 # Returns an arrayref of queue info hashrefs (Id, Name, Description,
-# Lifecycle) for all queues the current user has ShowTicket access to,
+# Lifecycle) for all queues the current user has SeeQueue access to,
 # sorted by name.
 # ---------------------------------------------------------------------------
 sub QueuesForCurrentUser {
