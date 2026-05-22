@@ -168,7 +168,7 @@ behaviour is configured per user via the preferences page.
 
 misy E<lt>git@mymistake.deE<gt>
 
-Torsten Brumm (co-author)
+Torsten Brumm E<lt>github@picturepunxx.deE<gt> (co-author)
 
 =head1 BUGS
 

@@ -108,7 +108,7 @@ All settings are stored per user and do not affect other users.
 ## Authors
 
 - misy &lt;git@mymistake.de&gt;
-- Torsten Brumm (co-author)
+- Torsten Brumm &lt;github@picturepunxx.de&gt; (co-author)
 
 ---
 
