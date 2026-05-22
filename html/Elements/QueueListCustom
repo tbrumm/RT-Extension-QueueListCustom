@@ -119,12 +119,14 @@ $loaded_date->Set( Format => 'Unix', Value => time() );
 %   $any_rendered++;
 
 <div class="mb-3">
-  <div class="d-flex align-items-center mb-1 gap-1">
-    <span class="accordion-toggle <% $collapsed ? 'collapsed' : '' %>"
-          data-bs-toggle="collapse"
-          data-bs-target="#qlc-<% $lc_id | h %>"
-          title="<% loc('Toggle visibility') %>"></span>
-    <span class="fw-bold"><% loc($lc_name) %></span>
+  <div class="d-flex align-items-center gap-2 px-2 py-1 mb-1 rounded bg-primary bg-opacity-10"
+       role="button"
+       data-bs-toggle="collapse"
+       data-bs-target="#qlc-<% $lc_id | h %>"
+       aria-expanded="<% $collapsed ? 'false' : 'true' %>"
+       title="<% loc('Toggle visibility') %>">
+    <span class="accordion-toggle <% $collapsed ? 'collapsed' : '' %>"></span>
+    <span class="fw-semibold"><% loc($lc_name) %></span>
   </div>
   <div id="qlc-<% $lc_id | h %>" class="collapse <% $collapsed ? '' : 'show' %>">
     <div class="table-responsive">
