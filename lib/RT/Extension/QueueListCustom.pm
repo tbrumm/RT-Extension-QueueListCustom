@@ -3,7 +3,7 @@ use warnings;
 
 package RT::Extension::QueueListCustom;
 
-our $VERSION = '0.04';
+our $VERSION = '1.0';
 
 =encoding utf8
 
@@ -153,10 +153,10 @@ folded up in the portlet.
 
 =back
 
-Click B<Save Changes> to apply — the button appears both at the top and bottom
-of the page. If you make any changes, an B<Unsaved changes> indicator appears
-next to the top button as a reminder. All settings are stored per user and do
-not affect other users.
+Whenever you change a setting, a fixed bar appears at the bottom of the screen
+spanning the full viewport width. It shows an B<Unsaved changes> badge and a
+B<Save Changes> button — both remain visible regardless of how far you have
+scrolled. All settings are stored per user and do not affect other users.
 
 =head1 CONFIGURATION
 

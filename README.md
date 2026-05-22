@@ -82,7 +82,7 @@ The bottom of the portlet shows when the data was last loaded and, if auto-refre
 
 ### Preferences page (`/Prefs/QueueListStatuses.html`)
 
-A **Save Changes** button appears at the top and bottom of the page. An **Unsaved changes** badge appears next to the top button whenever you modify a setting, so you won't accidentally navigate away without saving.
+Whenever you change a setting, a **fixed bar** appears at the bottom of the screen spanning the full viewport width. It shows an **Unsaved changes** badge and a **Save Changes** button — both remain visible regardless of how far you have scrolled.
 
 **General settings**
 

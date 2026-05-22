@@ -11,15 +11,6 @@
 <input type="hidden" name="lifecycle_order" id="qlc-order-input"
        value="<% join(',', map { $_->Name } @lifecycles) | h %>" />
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <span id="qlc-unsaved-banner" class="d-none badge text-bg-warning">
-    <&|/l&>Unsaved changes</&>
-  </span>
-  <button type="submit" name="Save" value="1" id="qlc-save-top"
-          class="btn btn-sm btn-outline-primary ms-auto">
-    <&|/l&>Save Changes</&>
-  </button>
-</div>
 
 <div class="card mb-4">
   <div class="card-header"><strong><&|/l&>General settings</&></strong></div>
@@ -209,17 +200,25 @@
 
 </div><%# end qlc-sortable %>
 
-  <& /Elements/Submit,
-    Caption => loc('Save Changes'),
-    Label   => loc('Save'),
-    Name    => 'Save',
-  &>
+  <div id="qlc-float-bar" class="d-none position-fixed bottom-0 start-0 end-0 d-flex align-items-center justify-content-center gap-3 px-4 py-2"
+       style="background:var(--bs-body-bg);border-top:1px solid var(--bs-border-color);box-shadow:0 -4px 12px rgba(0,0,0,.08);z-index:1050">
+    <span class="badge text-bg-warning"><&|/l&>Unsaved changes</&></span>
+    <button type="submit" name="Save" value="1" class="btn btn-sm btn-primary">
+      <&|/l&>Save Changes</&>
+    </button>
+  </div>
 </form>
 
 <script>
+function qlcMarkChanged() {
+    var form = document.querySelector('form[name="Preferences"]');
+    if (form) form.dispatchEvent(new Event('change'));
+}
+
 function qlcCheckGroup(group, val) {
     document.querySelectorAll('.qlc-' + group)
         .forEach(function(cb) { cb.checked = val; });
+    qlcMarkChanged();
 }
 
 function qlcResetQueues(group) {
@@ -232,6 +231,7 @@ function qlcResetStatuses(group, defaults) {
     document.querySelectorAll('.qlc-' + group).forEach(function(cb) {
         cb.checked = !!defaultSet[cb.dataset.status];
     });
+    qlcMarkChanged();
 }
 
 function qlcInitSortable() {
@@ -274,13 +274,8 @@ document.addEventListener('htmx:afterSettle',  qlcInitSortable);
     if (!form) return;
 
     function markDirty() {
-        var banner = document.getElementById('qlc-unsaved-banner');
-        var btn    = document.getElementById('qlc-save-top');
-        if (banner) banner.classList.remove('d-none');
-        if (btn) {
-            btn.classList.remove('btn-outline-primary');
-            btn.classList.add('btn-primary');
-        }
+        var floatBar = document.getElementById('qlc-float-bar');
+        if (floatBar) floatBar.classList.remove('d-none');
     }
 
     form.addEventListener('change', markDirty);

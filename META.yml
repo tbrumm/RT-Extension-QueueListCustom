@@ -16,5 +16,5 @@ no_index:
 perl_version: '5.010'
 requires:
   RT: '6.0.0'
-version: '0.03'
+version: '1.0'
 x_RT_too_new: '6.2.0'

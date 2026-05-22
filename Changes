@@ -1,5 +1,16 @@
 Revision history for RT-Extension-QueueListCustom
 
+1.0   2026-05-22
+    - First public release
+    - Preferences page: status checkboxes now grouped by category (initial /
+      active / inactive) in a horizontal layout
+    - Preferences page: unsaved-changes indicator and Save button now appear
+      in a fixed bottom bar spanning the full viewport width, always visible
+      regardless of scroll position
+    - Preferences page: bar appears and Save button highlights on any change,
+      including Select all / Deselect all / Reset to defaults actions
+    - Preferences page: sticky table headers in portlet (queue summary table)
+
 0.04  2026-05-22
     - Lifecycle section headers are now visually highlighted with a
       colour-coded background (one distinct Bootstrap colour per lifecycle)
