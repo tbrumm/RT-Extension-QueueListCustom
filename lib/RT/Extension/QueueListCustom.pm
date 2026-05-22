@@ -164,9 +164,11 @@ No server-side configuration is required beyond the C<Plugin()> call and
 C<$HomepageComponents> entry described under L</INSTALLATION>. All portlet
 behaviour is configured per user via the preferences page.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 misy E<lt>git@mymistake.deE<gt>
+
+Torsten Brumm (co-author)
 
 =head1 BUGS
 
