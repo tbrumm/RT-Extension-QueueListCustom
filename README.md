@@ -105,6 +105,13 @@ All settings are stored per user and do not affect other users.
 
 ---
 
+## Authors
+
+- misy &lt;git@mymistake.de&gt;
+- Torsten Brumm &lt;github@picturepunxx.de&gt; (co-author)
+
+---
+
 ## Bugs & Contributing
 
 Please report bugs and feature requests via the [GitHub issue tracker](https://github.com/misy1337/RT-Extension-QueueListCustom/issues).
