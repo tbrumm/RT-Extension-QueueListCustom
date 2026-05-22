@@ -1,5 +1,11 @@
 Revision history for RT-Extension-QueueListCustom
 
+0.04  2026-05-22
+    - Lifecycle section headers are now visually highlighted with a
+      colour-coded background (one distinct Bootstrap colour per lifecycle)
+    - Whole header row is now the collapse/expand toggle target
+    - Added screenshots to README
+
 0.03  2026-05-21
     - Per-lifecycle queue visibility: hide individual queues per user
     - Empty-queue hiding toggle (Show empty queues preference)
