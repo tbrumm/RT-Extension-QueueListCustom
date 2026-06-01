@@ -149,7 +149,6 @@ my $any_rendered  = 0;
     <span class="fw-semibold"><% loc($lc_name) %></span>
   </div>
   <div id="qlc-<% $lc_id | h %>" class="collapse <% $collapsed ? '' : 'show' %>">
-    <div class="table-responsive">
     <table class="table table-sm <% RT->Config->Get('TableAccent') %> queue-summary">
     <thead>
     <tr>
@@ -187,7 +186,6 @@ my $any_rendered  = 0;
 %   }
     </tbody>
     </table>
-    </div>
   </div>
 </div>
 
