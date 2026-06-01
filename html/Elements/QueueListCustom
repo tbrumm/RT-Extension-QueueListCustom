@@ -73,7 +73,7 @@ my %data;
 if ( $cache_valid ) {
     %data = %{ $count_cache->{data} };
 } elsif (@$queues) {
-    my $report = RT::Report::Tickets->new( $session{CurrentUser} );
+    my $report = RT::Report::Tickets->new( RT->SystemUser );
     my $query = "(" . join( ' OR ', map { "Queue = " . $_->{Id} } @$queues ) . ")";
     $report->SetupGroupings( Query => $query, GroupBy => [qw(Status Queue)] );
     while ( my $entry = $report->Next ) {
