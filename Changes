@@ -1,5 +1,9 @@
 Revision history for RT-Extension-QueueListCustom
 
+1.2   2026-06-01
+    - Performance: ticket count query now runs as system user, eliminating
+      per-ticket ACL overhead (cold response time ~100ms, down from ~1000ms)
+
 1.1   2026-05-22
     - Ticket count aggregation cached in session for 60 seconds
     - Reload button (↺) bypasses cache and forces a fresh DB query

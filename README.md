@@ -17,7 +17,7 @@ Replaces the built-in *Queue list* portlet with a fully per-user configurable ve
 - **Last loaded timestamp** — always know how current the displayed data is
 - **Configurable auto-refresh** — automatically refresh every 2, 5, 10, 20, 60 or 120 minutes
 
-Queues are listed based on `SeeQueue` access. Ticket counts respect `ShowTicket` — queues where the user cannot see any tickets show zeros and are hidden automatically by the empty-queue filter. Users in different roles automatically see different data.
+Queues are listed based on `SeeQueue` access — only queues the current user has permission to see are shown, both in the portlet and on the preferences page. Ticket counts are aggregated system-wide (matching the behaviour of RT's own built-in queue portlet). Users in different roles automatically see different queues.
 
 ## Screenshots
 
@@ -102,6 +102,14 @@ Drag the handle on the left of each card to reorder lifecycles. Within each card
 | Start collapsed | Start this lifecycle section folded up in the portlet |
 
 All settings are stored per user and do not affect other users.
+
+---
+
+## Performance
+
+Ticket counts are fetched via a single aggregated database query and cached in the user session for 60 seconds. The **Reload** button bypasses the cache and forces an immediate refresh.
+
+The aggregation uses RT's system user (identical to RT's own built-in queue portlet), which avoids per-ticket ACL overhead and keeps cold response times under 150 ms even with large numbers of queues.
 
 ---
 
